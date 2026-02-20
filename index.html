@@ -345,6 +345,173 @@
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ══════════════════════════════════════════════════════════ */
+  /* PARAMÈTRES - BOUTON & MODAL */
+  /* ══════════════════════════════════════════════════════════ */
+  .btn-settings {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #fff;
+  }
+  .btn-settings:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-2px);
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal-content {
+    background: #1e2139;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: modalSlideIn 0.3s ease;
+  }
+  @keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .modal-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .modal-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #9ca3af;
+    margin-bottom: 8px;
+  }
+  .form-input {
+    width: 100%;
+    background: #151829;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    color: #fff;
+    transition: all 0.2s;
+    box-sizing: border-box;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: #fbbf24;
+    background: #1a1d35;
+  }
+  .form-hint {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1e2139;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(251,191,36,0.4);
+  }
+  .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.15);
+  }
+
+  .save-indicator {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+    z-index: 10000;
+    animation: slideInRight 0.3s ease;
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(100px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .save-indicator.show {
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -364,6 +531,7 @@
       </div>
     </div>
     <div class="header-right">
+      <button id="btnSettings" class="btn-settings" onclick="openSettingsModal()" title="Paramètres">⚙️</button>
       <div class="badge-live"><div class="dot"></div>LIVE</div>
       <div class="date-chip" id="dateChip">—</div>
     </div>
@@ -583,7 +751,7 @@
 
 // ⚠️ IMPORTANT : Remplacez par l'URL de votre Web App Apps Script
 // ⚠️ IMPORTANT : Remplacez par l'URL de votre Web App Apps Script déployée
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0nJSh3hqtYpMhplQCWALS4DOqPC4wm1cIkplukfmy0y8N16Sq-wGprnlNzz7TSxPJ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/VOTRE_DEPLOYMENT_ID/exec';
 
 // Récupérer le token client depuis l'URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -597,7 +765,8 @@ let DATA = {
   }
 };
 
-const CFG = {
+// Configuration (sera chargée depuis le serveur)
+let CFG = {
   objectifFoodCost:    0.28,
   objectifBevCost:     0.22,
   objectifTicketMoyen: 38.00,
@@ -640,6 +809,19 @@ async function loadData() {
       achats: data.mois?.achats || [],  // ✅ Lire depuis data.mois
       ventes: data.mois?.ventes || []
     };
+    
+    // Charger la configuration
+    if (data.config) {
+      CFG = {
+        objectifFoodCost: parseFloat(data.config.objectif_food_cost) || 0.28,
+        objectifBevCost: parseFloat(data.config.objectif_bev_cost) || 0.22,
+        objectifTicketMoyen: parseFloat(data.config.objectif_ticket_moyen) || 38.00,
+        alerteTresorerie: parseFloat(data.config.alerte_tresorerie) || 2000,
+        tauxChargesFixes: parseFloat(data.config.taux_charges_fixes) || 0.35,
+        tauxPersonnel: parseFloat(data.config.taux_personnel) || 0.30
+      };
+      console.log('⚙️ Configuration chargée:', CFG);
+    }
     
     // Afficher la dernière mise à jour
     if (data.lastUpdate) {
@@ -1055,9 +1237,157 @@ document.addEventListener('mousemove', e => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// GESTION DES PARAMÈTRES
+// ═══════════════════════════════════════════════════════════
+
+function openSettingsModal() {
+  // Remplir le formulaire avec les valeurs actuelles
+  document.getElementById('objectifFoodCost').value = (CFG.objectifFoodCost * 100).toFixed(1);
+  document.getElementById('objectifBevCost').value = (CFG.objectifBevCost * 100).toFixed(1);
+  document.getElementById('objectifTicketMoyen').value = CFG.objectifTicketMoyen.toFixed(2);
+  document.getElementById('alerteTresorerie').value = CFG.alerteTresorerie;
+  
+  // Afficher la modal
+  document.getElementById('settingsModal').classList.add('show');
+}
+
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('show');
+}
+
+async function saveSettings(event) {
+  event.preventDefault();
+  
+  try {
+    // Récupérer les valeurs du formulaire
+    const config = {
+      objectif_food_cost: parseFloat(document.getElementById('objectifFoodCost').value) / 100,
+      objectif_bev_cost: parseFloat(document.getElementById('objectifBevCost').value) / 100,
+      objectif_ticket_moyen: parseFloat(document.getElementById('objectifTicketMoyen').value),
+      alerte_tresorerie: parseFloat(document.getElementById('alerteTresorerie').value),
+      taux_charges_fixes: CFG.tauxChargesFixes,
+      taux_personnel: CFG.tauxPersonnel
+    };
+    
+    // Envoyer au serveur
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'saveConfig',
+        id: CLIENT_TOKEN,
+        config: config
+      })
+    });
+    
+    if (!response.ok) throw new Error('Erreur sauvegarde');
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Mettre à jour CFG local
+      CFG = {
+        objectifFoodCost: config.objectif_food_cost,
+        objectifBevCost: config.objectif_bev_cost,
+        objectifTicketMoyen: config.objectif_ticket_moyen,
+        alerteTresorerie: config.alerte_tresorerie,
+        tauxChargesFixes: config.taux_charges_fixes,
+        tauxPersonnel: config.taux_personnel
+      };
+      
+      // Fermer la modal
+      closeSettingsModal();
+      
+      // Afficher l'indicateur de succès
+      const indicator = document.getElementById('saveIndicator');
+      indicator.classList.add('show');
+      setTimeout(() => {
+        indicator.classList.remove('show');
+      }, 3000);
+      
+      // Rafraîchir l'affichage avec les nouveaux paramètres
+      render('mois');
+      
+      console.log('✅ Paramètres sauvegardés:', CFG);
+    }
+    
+  } catch (error) {
+    console.error('❌ Erreur sauvegarde paramètres:', error);
+    alert('Erreur lors de la sauvegarde des paramètres. Veuillez réessayer.');
+  }
+}
+
+// Fermer la modal en cliquant sur l'overlay
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('settingsModal');
+  if (e.target === modal) {
+    closeSettingsModal();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
 document.addEventListener("DOMContentLoaded", () => startAutoRefresh());
 </script>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODAL PARAMÈTRES -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="settingsModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">⚙️ Paramètres</h2>
+      <button class="modal-close" onclick="closeSettingsModal()">×</button>
+    </div>
+    
+    <form id="settingsForm" onsubmit="saveSettings(event)">
+      <div class="form-group">
+        <label class="form-label">🍽️ Objectif Food Cost (%)</label>
+        <input type="number" id="objectifFoodCost" class="form-input" 
+               step="0.1" min="0" max="100" required>
+        <div class="form-hint">Pourcentage maximum de coût alimentaire</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">🍷 Objectif Beverage Cost (%)</label>
+        <input type="number" id="objectifBevCost" class="form-input" 
+               step="0.1" min="0" max="100" required>
+        <div class="form-hint">Pourcentage maximum de coût boissons</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">📊 Objectif Ticket Moyen (€)</label>
+        <input type="number" id="objectifTicketMoyen" class="form-input" 
+               step="0.01" min="0" required>
+        <div class="form-hint">Ticket moyen minimum attendu</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">💳 Alerte Trésorerie (€)</label>
+        <input type="number" id="alerteTresorerie" class="form-input" 
+               step="1" min="0" required>
+        <div class="form-hint">Montant maximum d'échéances à 30 jours</div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary">
+          💾 Sauvegarder
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Indicateur de sauvegarde -->
+<div id="saveIndicator" class="save-indicator">
+  ✅ Paramètres sauvegardés
+</div>
+
 </body>
 </html>
