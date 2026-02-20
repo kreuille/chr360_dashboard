@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -583,7 +582,12 @@
 // ═══════════════════════════════════════════════════════════
 
 // ⚠️ IMPORTANT : Remplacez par l'URL de votre Web App Apps Script
-const API_URL = 'https://script.google.com/macros/s/AKfycbwB1ce6D4jsHV4g_NMqBfzVURbaK2j2OPDk3QAEV8GkIyTn63AQYCcdmbjJ8C5KE3dbaw/exec';
+// ⚠️ IMPORTANT : Remplacez par l'URL de votre Web App Apps Script déployée
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0nJSh3hqtYpMhplQCWALS4DOqPC4wm1cIkplukfmy0y8N16Sq-wGprnlNzz7TSxPJ/execc';
+
+// Récupérer le token client depuis l'URL
+const urlParams = new URLSearchParams(window.location.search);
+const CLIENT_TOKEN = urlParams.get('id');
 
 // Données par défaut (affichées pendant le chargement)
 let DATA = {
@@ -609,12 +613,19 @@ async function loadData() {
   const badgeLive = document.querySelector('.badge-live');
   
   try {
+    // Vérifier que le token existe
+    if (!CLIENT_TOKEN) {
+      throw new Error('Token client manquant dans l\'URL. Utilisez : ?id=VOTRE_TOKEN');
+    }
+    
     // Afficher le chargement
     if (badgeLive) {
       badgeLive.innerHTML = '<span class="dot"></span> CHARGEMENT...';
     }
     
-    const response = await fetch(API_URL);
+    // Appeler l'API avec le token
+    const apiUrl = `${APPS_SCRIPT_URL}?action=dashboard&id=${CLIENT_TOKEN}`;
+    const response = await fetch(apiUrl);
     if (!response.ok) throw new Error('Erreur API: ' + response.status);
     
     const data = await response.json();
@@ -1050,145 +1061,3 @@ document.addEventListener("DOMContentLoaded", () => startAutoRefresh());
 </script>
 </body>
 </html>
-
-// ═══════════════════════════════════════════════════════════
-// CHR 360° - DASHBOARD API LOADER
-// ═══════════════════════════════════════════════════════════
-// À ajouter AVANT la ligne "const DATA = {" dans votre dashboard.html
-
-// CONFIGURATION API
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/VOTRE_DEPLOYMENT_ID/exec';
-
-// DATA (sera chargée depuis l'API)
-let DATA = {
-  mois: { achats: [], ventes: [] },
-  lastUpdate: null
-};
-
-// ═══════════════════════════════════════════════════════════
-// LOAD DATA FROM API
-// ═══════════════════════════════════════════════════════════
-async function loadData() {
-  try {
-    // Récupérer l'ID client depuis l'URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const clientId = urlParams.get('id');
-    
-    if (!clientId) {
-      showError('❌ Token client manquant dans l\'URL');
-      return false;
-    }
-    
-    // Afficher loading
-    showLoading();
-    
-    // Appeler l'API
-    const response = await fetch(`${APPS_SCRIPT_URL}?action=dashboard&id=${clientId}`, {
-      method: 'GET',
-      mode: 'cors'
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data.mois) {
-      throw new Error('Format de données invalide');
-    }
-    
-    DATA = data;
-    hideLoading();
-    return true;
-    
-  } catch(error) {
-    console.error('Erreur chargement données:', error);
-    showError('❌ Impossible de charger les données. Vérifiez votre lien.');
-    return false;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// LOADING & ERROR UI
-// ═══════════════════════════════════════════════════════════
-function showLoading() {
-  const loader = document.createElement('div');
-  loader.id = 'loader';
-  loader.style.cssText = `
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  `;
-  loader.innerHTML = `
-    <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
-    <div style="font-family: var(--font-head); font-size: 24px; margin-bottom: 10px;">CHR 360°</div>
-    <div style="color: var(--muted); font-size: 14px;">Chargement de vos données...</div>
-    <div style="width: 200px; height: 3px; background: var(--border); border-radius: 3px; margin-top: 20px; overflow: hidden;">
-      <div style="width: 40%; height: 100%; background: var(--accent); animation: progress 1.5s infinite;"></div>
-    </div>
-    <style>
-      @keyframes progress {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(400%); }
-      }
-    </style>
-  `;
-  document.body.appendChild(loader);
-}
-
-function hideLoading() {
-  const loader = document.getElementById('loader');
-  if (loader) loader.remove();
-}
-
-function showError(message) {
-  hideLoading();
-  const error = document.createElement('div');
-  error.style.cssText = `
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 40px;
-    text-align: center;
-  `;
-  error.innerHTML = `
-    <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
-    <div style="font-size: 20px; color: var(--text); margin-bottom: 10px;">${message}</div>
-    <div style="color: var(--muted); font-size: 14px; max-width: 500px;">
-      Si le problème persiste, contactez le support à arnaudguedou@gmail.com
-    </div>
-  `;
-  document.body.appendChild(error);
-}
-
-// ═══════════════════════════════════════════════════════════
-// MODIFIER LA FONCTION startAutoRefresh
-// ═══════════════════════════════════════════════════════════
-// REMPLACER la fonction startAutoRefresh existante par celle-ci :
-
-async function startAutoRefresh() {
-  // Charger les données initiales
-  const success = await loadData();
-  if (!success) return;
-  
-  // Render initial
-  render('mois');
-  
-  // Auto-refresh toutes les 5 minutes
-  setInterval(async () => {
-    await loadData();
-    render('mois');
-    console.log('✓ Données actualisées:', new Date().toLocaleTimeString('fr-FR'));
-  }, 5 * 60 * 1000);
-}
