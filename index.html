@@ -637,8 +637,8 @@ async function loadData() {
     
     // Mettre à jour DATA avec les données du Sheet
     DATA.mois = {
-      achats: data.achats || [],
-      ventes: data.ventes || []
+      achats: data.mois?.achats || [],  // ✅ Lire depuis data.mois
+      ventes: data.mois?.ventes || []
     };
     
     // Afficher la dernière mise à jour
