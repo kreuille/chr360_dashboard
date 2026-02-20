@@ -1,404 +1,1194 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHR 360° - Installation Automatique</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHR 360° — Pilotage Restaurant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0a0f;
+    --surface:   #12121a;
+    --card:      #1a1a26;
+    --border:    #2a2a3d;
+    --accent:    #f0a500;
+    --accent2:   #e05c5c;
+    --accent3:   #4ecdc4;
+    --green:     #2ecc71;
+    --red:       #e74c3c;
+    --orange:    #f39c12;
+    --text:      #f0f0f0;
+    --muted:     #8888a0;
+    --dim:       #55556a;
+    --font-head: 'DM Serif Display', serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --r:         12px;
+    --r-lg:      20px;
+  }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
-            width: 100%;
-            padding: 40px;
-        }
+  html { scroll-behavior: smooth; }
 
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-        .header h1 {
-            color: #667eea;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
 
-        .header p {
-            color: #666;
-            font-size: 1.1em;
-        }
+  /* ── GLOW BG ── */
+  .bg-glow {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.12;
+  }
+  .bg-glow-1 { background: var(--accent); top: -200px; left: -100px; }
+  .bg-glow-2 { background: var(--accent3); bottom: -200px; right: -100px; }
 
-        .form-group {
-            margin-bottom: 25px;
-        }
+  /* ── LAYOUT ── */
+  .app { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 28px 24px 60px; }
 
-        label {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 0.95em;
-        }
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    animation: fadeDown 0.6s ease both;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-mark {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--accent), #c07800);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 0 30px rgba(240,165,0,0.3);
+  }
+  .header-title { font-family: var(--font-head); font-size: 26px; letter-spacing: -0.5px; }
+  .header-subtitle { color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .badge-live {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(46,204,113,0.12);
+    border: 1px solid rgba(46,204,113,0.3);
+    padding: 6px 14px; border-radius: 100px;
+    font-size: 11px; font-weight: 600; color: var(--green);
+    letter-spacing: 0.5px;
+  }
+  .badge-live .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  .date-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 100px;
+    font-size: 11px; color: var(--muted);
+    font-family: var(--font-mono);
+  }
 
-        label .required {
-            color: #e74c3c;
-        }
+  /* ── PERIOD TABS ── */
+  .period-tabs {
+    display: flex; gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+    width: fit-content;
+    animation: fadeDown 0.7s ease both;
+  }
+  .tab {
+    padding: 7px 20px; border-radius: 100px;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    color: var(--muted); border: none; background: none;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: 600;
+  }
+  .tab:hover:not(.active) { color: var(--text); }
 
-        input[type="text"],
-        input[type="email"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s;
-        }
+  /* ── SECTION LABELS ── */
+  .section-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 14px; margin-top: 32px;
+  }
+  .section-label:first-child { margin-top: 0; }
 
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+  /* ── GRID ── */
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
 
-        .help-text {
-            font-size: 0.85em;
-            color: #999;
-            margin-top: 5px;
-        }
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+  .card:hover { border-color: var(--dim); transform: translateY(-1px); }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(600px circle at var(--mouse-x,50%) var(--mouse-y,50%), rgba(240,165,0,0.04), transparent 40%);
+    pointer-events: none;
+  }
+  .card-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card-value {
+    font-family: var(--font-mono);
+    font-size: 28px; font-weight: 600;
+    letter-spacing: -1px; line-height: 1;
+    margin-bottom: 4px;
+  }
+  .card-value.lg { font-size: 36px; }
+  .card-sub { font-size: 12px; color: var(--muted); }
+  .card-delta {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: 6px;
+    margin-top: 8px;
+  }
+  .delta-up   { background: rgba(46,204,113,0.15); color: var(--green); }
+  .delta-down { background: rgba(231,76,60,0.15);  color: var(--red); }
+  .delta-warn { background: rgba(243,156,18,0.15); color: var(--orange); }
 
-        .help-text a {
-            color: #667eea;
-            text-decoration: none;
-        }
+  /* ── ACCENT LINE ── */
+  .accent-line {
+    position: absolute;
+    bottom: 0; left: 22px; right: 22px;
+    height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .accent-line.green  { background: linear-gradient(90deg, var(--green), transparent); }
+  .accent-line.red    { background: linear-gradient(90deg, var(--red), transparent); }
+  .accent-line.teal   { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .accent-line.orange { background: linear-gradient(90deg, var(--orange), transparent); }
 
-        .help-text a:hover {
-            text-decoration: underline;
-        }
+  /* ── GAUGE ── */
+  .gauge-wrap { display: flex; flex-direction: column; align-items: center; padding: 8px 0; }
+  .gauge-svg { width: 140px; height: 80px; overflow: visible; }
+  .gauge-track { fill: none; stroke: var(--border); stroke-width: 10; stroke-linecap: round; }
+  .gauge-fill  { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1); }
+  .gauge-value { font-family: var(--font-mono); font-size: 20px; font-weight: 600; fill: var(--text); }
+  .gauge-label { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: center; }
+  .gauge-obj   { font-size: 10px; color: var(--dim); margin-top: 2px; }
 
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 10px;
-        }
+  /* ── WATERFALL / BAR ── */
+  .chart-area { padding: 8px 0; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-row-label { font-size: 11px; color: var(--muted); width: 120px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); width: 0; }
+  .bar-amount { font-size: 11px; font-family: var(--font-mono); color: var(--text); width: 80px; text-align: right; flex-shrink: 0; }
 
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+  /* ── MINI SPARKLINE ── */
+  .sparkline { width: 100%; height: 50px; }
+  .sparkline-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sparkline-area { stroke: none; }
 
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin-top: 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-size: 10px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+    padding: 10px 14px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid rgba(42,42,61,0.5);
+    font-size: 12px; vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .mono { font-family: var(--font-mono); }
+  .pill {
+    display: inline-block;
+    padding: 3px 9px; border-radius: 6px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  }
+  .pill-green  { background: rgba(46,204,113,0.15); color: var(--green); }
+  .pill-red    { background: rgba(231,76,60,0.15);  color: var(--red); }
+  .pill-orange { background: rgba(243,156,18,0.15); color: var(--orange); }
+  .pill-blue   { background: rgba(78,205,196,0.15); color: var(--accent3); }
 
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-        }
+  /* ── ALERTS ── */
+  .alert-card {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 18px;
+    border-radius: var(--r);
+    border: 1px solid;
+    margin-bottom: 10px;
+    animation: slideIn 0.4s ease both;
+  }
+  .alert-card:last-child { margin-bottom: 0; }
+  .alert-ok     { background: rgba(46,204,113,0.07);  border-color: rgba(46,204,113,0.2); }
+  .alert-warn   { background: rgba(243,156,18,0.07);  border-color: rgba(243,156,18,0.2); }
+  .alert-danger { background: rgba(231,76,60,0.07);   border-color: rgba(231,76,60,0.2); }
+  .alert-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
+  .alert-text strong { display: block; font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .alert-text span   { font-size: 11px; color: var(--muted); }
 
-        .loading.active {
-            display: block;
-        }
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
 
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
+  /* ── TRESORERIE TIMELINE ── */
+  .timeline { display: flex; flex-direction: column; gap: 8px; }
+  .timeline-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    transition: border-color 0.2s;
+  }
+  .timeline-item:hover { border-color: var(--dim); }
+  .timeline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .timeline-date { font-family: var(--font-mono); font-size: 11px; color: var(--muted); width: 80px; flex-shrink: 0; }
+  .timeline-name { flex: 1; font-size: 12px; font-weight: 500; }
+  .timeline-cat  { font-size: 10px; color: var(--dim); }
+  .timeline-amount { font-family: var(--font-mono); font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .timeline-days { font-size: 10px; color: var(--muted); flex-shrink: 0; width: 55px; text-align: right; }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-left { font-size: 11px; color: var(--dim); }
+  .footer-right { display: flex; gap: 8px; }
+  .footer-tag {
+    font-size: 10px; color: var(--dim);
+    border: 1px solid var(--border);
+    padding: 3px 9px; border-radius: 6px;
+    font-family: var(--font-mono);
+  }
 
-        .result {
-            display: none;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:none; } }
+  @keyframes slideIn  { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:none; } }
+  @keyframes pulse    { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  @keyframes countUp  { from { opacity:0; } to { opacity:1; } }
 
-        .result.active {
-            display: block;
-        }
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.10s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.20s; }
+  .card:nth-child(5) { animation-delay: 0.25s; }
+  .card:nth-child(6) { animation-delay: 0.30s; }
 
-        .result.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
+  /* ── RESPONSIVE TABLETTE ── */
+  @media (max-width: 900px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-2-1 { grid-template-columns: 1fr; }
+    .grid-1-2 { grid-template-columns: 1fr; }
+    .card-value { font-size: 24px; }
+    .card-value.lg { font-size: 30px; }
+  }
+  @media (max-width: 560px) {
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .header { flex-direction: column; gap: 14px; align-items: flex-start; }
+    .header-right { flex-wrap: wrap; }
+  }
 
-        .result.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .result h3 {
-            margin-bottom: 10px;
-        }
-
-        .workflow-list {
-            margin-top: 15px;
-        }
-
-        .workflow-item {
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 8px;
-        }
-
-        .workflow-item a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .steps {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-
-        .steps h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .steps ol {
-            padding-left: 20px;
-        }
-
-        .steps li {
-            margin-bottom: 10px;
-            color: #666;
-        }
-    </style>
+  /* ── SCROLL CUSTOM ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 CHR 360°</h1>
-            <p>Installation Automatique</p>
-        </div>
 
-        <div class="steps">
-            <h3>📋 Avant de commencer</h3>
-            <ol>
-                <li>Créez une copie du <a href="https://docs.google.com/spreadsheets/d/1dGB3VMYaxHLFs2vopzruD0JboP92ZrqbnvVsQm47VS0/copy" target="_blank">template Google Sheets</a></li>
-                <li>Créez 4 dossiers dans Google Drive (ACHATS, VENTES, ARCHIVE_ACHATS, ARCHIVE_VENTES)</li>
-                <li>Créez un bot Telegram avec <a href="https://t.me/BotFather" target="_blank">@BotFather</a> et récupérez votre Chat ID</li>
-            </ol>
-        </div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
 
-        <form id="installForm">
-            <div class="form-group">
-                <label>
-                    Nom du restaurant <span class="required">*</span>
-                </label>
-                <input type="text" name="clientName" required placeholder="Ex: Restaurant Le Gourmet">
-            </div>
+<div class="app">
 
-            <div class="form-group">
-                <label>
-                    ID Google Sheet <span class="required">*</span>
-                </label>
-                <input type="text" name="sheetId" required placeholder="Ex: 1dGB3VMYaxHLFs2vopzruD0JboP92Zrq...">
-                <div class="help-text">
-                    Trouvez l'ID dans l'URL: docs.google.com/spreadsheets/d/<strong>[ICI]</strong>/edit
-                </div>
-            </div>
+  <!-- ═══ HEADER ═══ -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-mark">🍽</div>
+      <div>
+        <div class="header-title">CHR 360°</div>
+        <div class="header-subtitle">Le Bistrot du Marché — Tableau de Bord de Pilotage</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="badge-live"><div class="dot"></div>LIVE</div>
+      <div class="date-chip" id="dateChip">—</div>
+    </div>
+  </header>
 
-            <div class="form-group">
-                <label>
-                    ID Dossier Drive ACHATS <span class="required">*</span>
-                </label>
-                <input type="text" name="driveAchatsId" required placeholder="Ex: 1puel1sqq0bzYVeVFxBuTF0cEJlRGjGhN">
-                <div class="help-text">
-                    Dossier où seront déposées les factures fournisseurs
-                </div>
-            </div>
+  <!-- ═══ PERIOD TABS ═══ -->
+  <div class="period-tabs">
+    <button class="tab" onclick="switchPeriod('semaine', this)">7 jours</button>
+    <button class="tab active" onclick="switchPeriod('mois', this)">Ce mois</button>
+    <button class="tab" onclick="switchPeriod('trimestre', this)">Trimestre</button>
+  </div>
 
-            <div class="form-group">
-                <label>
-                    ID Dossier Drive VENTES <span class="required">*</span>
-                </label>
-                <input type="text" name="driveVentesId" required placeholder="Ex: 17n_3vaMDDVidXHVxBRYATfK1B6W2Co3L">
-                <div class="help-text">
-                    Dossier où seront déposés les tickets Z
-                </div>
-            </div>
+  <!-- ═══ KPIs PRINCIPAUX ═══ -->
+  <div class="section-label">Performance</div>
+  <div class="grid-4" id="kpiGrid">
 
-            <div class="form-group">
-                <label>
-                    ID Dossier Archive ACHATS <span class="required">*</span>
-                </label>
-                <input type="text" name="driveArchiveAchatsId" required placeholder="Ex: 17WqiUF6XpBszB7JKsMGEkaEYpID9CyAF">
-            </div>
-
-            <div class="form-group">
-                <label>
-                    ID Dossier Archive VENTES <span class="required">*</span>
-                </label>
-                <input type="text" name="driveArchiveVentesId" required placeholder="Ex: 1GyojP4thq7K8ZCVvheoY8y1qgpOtheDo">
-            </div>
-
-            <div class="form-group">
-                <label>
-                    Email pour les alertes <span class="required">*</span>
-                </label>
-                <input type="email" name="email" required placeholder="Ex: contact@restaurant.com">
-            </div>
-
-            <div class="form-group">
-                <label>
-                    Telegram Chat ID <span class="required">*</span>
-                </label>
-                <input type="text" name="telegramChatId" required placeholder="Ex: 123456789">
-                <div class="help-text">
-                    <a href="https://t.me/userinfobot" target="_blank">Obtenir mon Chat ID</a>
-                </div>
-            </div>
-
-            <button type="submit" id="submitBtn">
-                🚀 Lancer l'installation
-            </button>
-        </form>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p style="margin-top: 15px; color: #667eea; font-weight: 600;">
-                Installation en cours... Cela peut prendre 1-2 minutes.
-            </p>
-        </div>
-
-        <div class="result" id="result">
-            <!-- Résultat sera inséré ici -->
-        </div>
+    <div class="card">
+      <div class="card-label">📈 CA Total TTC</div>
+      <div class="card-value lg" id="kpi-ca">—</div>
+      <div class="card-sub">Chiffre d'affaires du mois</div>
+      <div class="card-delta delta-up" id="kpi-ca-delta">—</div>
+      <div class="accent-line"></div>
     </div>
 
-    <script>
-        // Configuration - À REMPLACER par votre URL Apps Script
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/VOTRE_DEPLOYMENT_ID/exec';
+    <div class="card">
+      <div class="card-label">👥 Couverts</div>
+      <div class="card-value lg" id="kpi-couverts">—</div>
+      <div class="card-sub">Ticket moyen : <span id="kpi-ticket" style="color:var(--text);font-weight:600">—</span></div>
+      <div class="card-delta" id="kpi-ticket-delta">—</div>
+      <div class="accent-line teal"></div>
+    </div>
 
-        const form = document.getElementById('installForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
+    <div class="card">
+      <div class="card-label">💰 Food Cost</div>
+      <div class="card-value lg" id="kpi-fc">—</div>
+      <div class="card-sub">Objectif : <span id="kpi-fc-obj" style="color:var(--muted)">28,0%</span></div>
+      <div class="card-delta" id="kpi-fc-delta">—</div>
+      <div class="accent-line" id="fc-line"></div>
+    </div>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    <div class="card">
+      <div class="card-label">💳 Échéances 30j</div>
+      <div class="card-value lg" id="kpi-ech">—</div>
+      <div class="card-sub">À régler dans 30 jours</div>
+      <div class="card-delta" id="kpi-ech-delta">—</div>
+      <div class="accent-line orange"></div>
+    </div>
 
-            // Récupérer les données du formulaire
-            const formData = new FormData(form);
-            const data = {
-                action: 'install'
-            };
-            
-            formData.forEach((value, key) => {
-                data[key] = value.trim();
-            });
+  </div>
 
-            // UI: Mode chargement
-            submitBtn.disabled = true;
-            loading.classList.add('active');
-            result.classList.remove('active');
+  <!-- ═══ JAUGES + SPARKLINE ═══ -->
+  <div class="section-label" style="margin-top:28px">Ratios & Tendance CA</div>
+  <div class="grid-3">
 
-            try {
-                // Appel API
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Important pour Apps Script
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
+    <!-- JAUGE FOOD COST -->
+    <div class="card">
+      <div class="card-label">🥩 Food Cost vs Objectif</div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 140 80">
+          <path class="gauge-track" d="M15,75 A55,55 0 0,1 125,75" />
+          <path class="gauge-fill" id="gauge-fc-path" d="M15,75 A55,55 0 0,1 125,75"
+            stroke="#f0a500" stroke-dasharray="173" stroke-dashoffset="173" />
+          <text class="gauge-value" x="70" y="68" text-anchor="middle" id="gauge-fc-text">—</text>
+        </svg>
+        <div class="gauge-label">Food Cost réel</div>
+        <div class="gauge-obj">Objectif max : 28,0%</div>
+      </div>
+    </div>
 
-                // Note: avec no-cors, on ne peut pas lire la réponse
-                // On simule un succès après 2 secondes
-                await new Promise(resolve => setTimeout(resolve, 2000));
+    <!-- JAUGE BEVERAGE COST -->
+    <div class="card">
+      <div class="card-label">🍺 Beverage Cost vs Objectif</div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 140 80">
+          <path class="gauge-track" d="M15,75 A55,55 0 0,1 125,75" />
+          <path class="gauge-fill" id="gauge-bev-path" d="M15,75 A55,55 0 0,1 125,75"
+            stroke="#4ecdc4" stroke-dasharray="173" stroke-dashoffset="173" />
+          <text class="gauge-value" x="70" y="68" text-anchor="middle" id="gauge-bev-text">—</text>
+        </svg>
+        <div class="gauge-label">Beverage Cost réel</div>
+        <div class="gauge-obj">Objectif max : 22,0%</div>
+      </div>
+    </div>
 
-                // Afficher succès
-                showSuccess(data.clientName);
+    <!-- SPARKLINE CA -->
+    <div class="card">
+      <div class="card-label">📊 Tendance CA journalier (TTC)</div>
+      <svg class="sparkline" id="sparkline" viewBox="0 0 300 50" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f0a500" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#f0a500" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path class="sparkline-area" id="spark-area" fill="url(#sparkGrad)" />
+        <path class="sparkline-line" id="spark-line" stroke="#f0a500" />
+      </svg>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span style="font-size:10px;color:var(--dim)" id="spark-min">min —</span>
+        <span style="font-size:10px;color:var(--dim)" id="spark-max">max —</span>
+        <span style="font-size:10px;color:var(--dim)" id="spark-avg">moy —</span>
+      </div>
+    </div>
 
-            } catch (error) {
-                console.error('Erreur:', error);
-                showError(error.message);
-            } finally {
-                submitBtn.disabled = false;
-                loading.classList.remove('active');
-            }
-        });
+  </div>
 
-        function showSuccess(clientName) {
-            result.className = 'result active success';
-            result.innerHTML = `
-                <h3>✅ Installation réussie !</h3>
-                <p>Le système CHR 360° a été installé pour <strong>${clientName}</strong>.</p>
-                <p style="margin-top: 15px;">
-                    Vous allez recevoir un email de confirmation avec les liens vers vos workflows n8n.
-                </p>
-                <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
-                    💡 Pensez à vérifier vos spams si vous ne recevez pas l'email.
-                </p>
-            `;
-        }
+  <!-- ═══ RÉPARTITION ACHATS + MARGE ═══ -->
+  <div class="section-label" style="margin-top:28px">Achats & Marges</div>
+  <div class="grid-2-1">
 
-        function showError(message) {
-            result.className = 'result active error';
-            result.innerHTML = `
-                <h3>❌ Erreur d'installation</h3>
-                <p>${message}</p>
-                <p style="margin-top: 15px;">
-                    Veuillez vérifier vos informations et réessayer.
-                    Si le problème persiste, contactez le support.
-                </p>
-            `;
-        }
+    <!-- BARCHART ACHATS PAR CATÉGORIE -->
+    <div class="card">
+      <div class="card-label">🛒 Répartition achats par catégorie (HT)</div>
+      <div class="chart-area" id="achats-chart">
+        <!-- Généré par JS -->
+      </div>
+    </div>
 
-        // Health check au chargement
-        window.addEventListener('load', async () => {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=health');
-                console.log('Health check OK');
-            } catch (error) {
-                console.warn('Health check failed:', error);
-            }
-        });
-    </script>
+    <!-- MARGE ESTIMÉE -->
+    <div class="card">
+      <div class="card-label">📐 Compte de résultat simplifié</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px" id="pnl-block">
+        <!-- Généré par JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ TRÉSORERIE PRÉVISIONNELLE ═══ -->
+  <div class="section-label" style="margin-top:28px">Trésorerie Prévisionnelle — 60 jours</div>
+  <div class="grid-2">
+
+    <div class="card" style="padding:20px">
+      <div class="card-label">🔴 Échéances urgentes — 0 à 30 jours</div>
+      <div class="timeline" id="timeline-30">
+        <!-- Généré par JS -->
+      </div>
+    </div>
+
+    <div class="card" style="padding:20px">
+      <div class="card-label">🟡 Échéances à planifier — 31 à 60 jours</div>
+      <div class="timeline" id="timeline-60">
+        <!-- Généré par JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ ALERTES ═══ -->
+  <div class="section-label" style="margin-top:28px">Alertes & Recommandations</div>
+  <div id="alertes-block">
+    <!-- Généré par JS -->
+  </div>
+
+  <!-- ═══ TABLE DERNIÈRES FACTURES ═══ -->
+  <div class="section-label" style="margin-top:28px">Dernières Factures Traitées</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="table-wrap">
+      <table id="table-factures">
+        <thead>
+          <tr>
+            <th>Fournisseur</th>
+            <th>Catégorie</th>
+            <th>Date</th>
+            <th>Échéance</th>
+            <th>Montant TTC</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <!-- Généré par JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ TABLE DERNIÈRES VENTES ═══ -->
+  <div class="section-label" style="margin-top:28px">Derniers Z de Caisse Traités</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Service</th>
+            <th>CA TTC</th>
+            <th>Couverts</th>
+            <th>Ticket Moyen</th>
+            <th>CA Bar</th>
+            <th>Annulations</th>
+          </tr>
+        </thead>
+        <tbody id="table-ventes">
+          <!-- Généré par JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-left">Propulsé par <strong>n8n</strong> + <strong>GPT-4o Vision</strong> + <strong>Google Sheets</strong></div>
+    <div class="footer-right">
+      <span class="footer-tag">CHR 360° v1.0</span>
+      <span class="footer-tag">AUTO-REFRESH 15min</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONNEXION GOOGLE SHEETS VIA APPS SCRIPT API
+// ═══════════════════════════════════════════════════════════
+
+// ⚠️ IMPORTANT : Remplacez par l'URL de votre Web App Apps Script
+const API_URL = 'https://script.google.com/macros/s/AKfycbwB1ce6D4jsHV4g_NMqBfzVURbaK2j2OPDk3QAEV8GkIyTn63AQYCcdmbjJ8C5KE3dbaw/exec';
+
+// Données par défaut (affichées pendant le chargement)
+let DATA = {
+  mois: {
+    achats: [],
+    ventes: []
+  }
+};
+
+const CFG = {
+  objectifFoodCost:    0.28,
+  objectifBevCost:     0.22,
+  objectifTicketMoyen: 38.00,
+  alerteTresorerie:    2000,
+  tauxChargesFixes:    0.35,
+  tauxPersonnel:       0.30,
+};
+
+// ═══════════════════════════════════════════════════════════
+// CHARGER LES DONNÉES DEPUIS GOOGLE SHEETS
+// ═══════════════════════════════════════════════════════════
+async function loadData() {
+  const badgeLive = document.querySelector('.badge-live');
+  
+  try {
+    // Afficher le chargement
+    if (badgeLive) {
+      badgeLive.innerHTML = '<span class="dot"></span> CHARGEMENT...';
+    }
+    
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error('Erreur API: ' + response.status);
+    
+    const data = await response.json();
+    
+    // Vérifier si erreur dans la réponse
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    // Mettre à jour DATA avec les données du Sheet
+    DATA.mois = {
+      achats: data.achats || [],
+      ventes: data.ventes || []
+    };
+    
+    // Afficher la dernière mise à jour
+    if (data.lastUpdate) {
+      const updateTime = new Date(data.lastUpdate).toLocaleString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      console.log('📊 Données chargées:', updateTime);
+      console.log('   → Achats:', data.count?.achats || 0, 'factures');
+      console.log('   → Ventes:', data.count?.ventes || 0, 'tickets');
+    }
+    
+    // Re-render le dashboard avec les nouvelles données
+    render('mois');
+    
+    // Badge de succès
+    if (badgeLive) {
+      badgeLive.innerHTML = '<span class="dot"></span> LIVE';
+    }
+    
+  } catch (error) {
+    console.error('❌ Erreur chargement données:', error);
+    
+    // Afficher erreur dans le badge
+    if (badgeLive) {
+      badgeLive.innerHTML = '<span style="width:8px;height:8px;background:var(--red);border-radius:50%;display:inline-block"></span> ERREUR';
+      badgeLive.style.background = 'rgba(231,76,60,0.12)';
+      badgeLive.style.borderColor = 'rgba(231,76,60,0.3)';
+      badgeLive.style.color = 'var(--red)';
+    }
+    
+    // Message d'erreur dans la console
+    console.log('');
+    console.log('🔧 CONFIGURATION REQUISE :');
+    console.log('1. Déployez votre Apps Script comme Web App');
+    console.log('2. Remplacez API_URL dans ce fichier par l\'URL de déploiement');
+    console.log('3. Assurez-vous que "Qui a accès" = "Tout le monde"');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTO-REFRESH TOUTES LES 15 MINUTES
+// ═══════════════════════════════════════════════════════════
+function startAutoRefresh() {
+  // Charger immédiatement
+  loadData();
+  
+  // Puis recharger toutes les 15 minutes
+  setInterval(loadData, 15 * 60 * 1000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+const fmt  = v => new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) + ' €';
+const fmtK = v => v >= 1000 ? (v/1000).toFixed(1).replace('.',',') + 'k €' : fmt(v);
+const fmtP = v => (v*100).toFixed(1).replace('.',',') + '%';
+const fmtI = v => Math.round(v).toLocaleString('fr-FR');
+const qs   = s => document.querySelector(s);
+const diff = (d1,d2) => Math.ceil((new Date(d2)-new Date(d1))/(86400000));
+
+// ═══════════════════════════════════════════════════════════
+// CALCULS
+// ═══════════════════════════════════════════════════════════
+function compute(data) {
+  const v = data.ventes, a = data.achats;
+
+  const caTTC     = v.reduce((s,x)=>s+x.caTTC,0);
+  const caHT      = v.reduce((s,x)=>s+x.caHT,0);
+  const couverts  = v.reduce((s,x)=>s+x.couverts,0);
+  const ticketMoy = couverts > 0 ? caTTC/couverts : 0;
+  const caBar     = v.reduce((s,x)=>s+x.caBar,0);
+  const annuls    = v.reduce((s,x)=>s+x.annuls,0);
+  const jours     = v.length;
+  const caMoyJ    = jours > 0 ? caTTC/jours : 0;
+
+  const alimHT = a.filter(x=>x.cat==='ALIMENTAIRE').reduce((s,x)=>s+x.ht,0);
+  const boisHT = a.filter(x=>x.cat==='BOISSONS').reduce((s,x)=>s+x.ht,0);
+  const entrHT = a.filter(x=>x.cat==='ENTRETIEN').reduce((s,x)=>s+x.ht,0);
+  const totalHT= a.reduce((s,x)=>s+x.ht,0);
+
+  const foodCost = caHT>0 ? alimHT/caHT : 0;
+  const bevCost  = caHT>0 ? boisHT/caHT : 0;
+  const totalCost= caHT>0 ? totalHT/caHT : 0;
+  const margeB   = Math.max(0, 1 - totalCost - CFG.tauxChargesFixes - CFG.tauxPersonnel);
+
+  const now = new Date();
+  const f30 = new Date(now); f30.setDate(f30.getDate()+30);
+  const f60 = new Date(now); f60.setDate(f60.getDate()+60);
+
+  const ech30 = a.filter(x=> { const d=new Date(x.echeance); return d>=now && d<=f30 && x.statut!=='PAYE'; });
+  const ech60 = a.filter(x=> { const d=new Date(x.echeance); return d>f30  && d<=f60 && x.statut!=='PAYE'; });
+  const tot30 = ech30.reduce((s,x)=>s+x.ttc,0);
+  const tot60 = ech60.reduce((s,x)=>s+x.ttc,0);
+
+  return {
+    caTTC, caHT, couverts, ticketMoy, caBar, annuls, jours, caMoyJ,
+    alimHT, boisHT, entrHT, totalHT,
+    foodCost, bevCost, totalCost, margeB,
+    ech30, ech60, tot30, tot60,
+    echeancesTotal: tot30+tot60,
+    catBreak: [
+      { label:'Alimentaire', val:alimHT, color:'#f0a500' },
+      { label:'Boissons',    val:boisHT, color:'#4ecdc4' },
+      { label:'Entretien',   val:entrHT, color:'#8888a0' },
+    ]
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function render(periodKey) {
+  const data = DATA[periodKey] || DATA.mois;
+  const k = compute(data);
+
+  // Date chip
+  qs('#dateChip').textContent = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+
+  // ─ KPI: CA
+  animateValue('kpi-ca', k.caTTC, v => fmtK(v));
+  qs('#kpi-ca-delta').className = 'card-delta delta-up';
+  qs('#kpi-ca-delta').textContent = '▲ +8,4% vs mois préc.';
+
+  // ─ KPI: Couverts
+  animateValue('kpi-couverts', k.couverts, v => fmtI(v));
+  qs('#kpi-ticket').textContent = fmt(k.ticketMoy);
+  const tmDelta = qs('#kpi-ticket-delta');
+  if (k.ticketMoy >= CFG.objectifTicketMoyen) {
+    tmDelta.className = 'card-delta delta-up';
+    tmDelta.textContent = '▲ Objectif atteint (' + fmt(CFG.objectifTicketMoyen) + ')';
+  } else {
+    tmDelta.className = 'card-delta delta-warn';
+    tmDelta.textContent = '▼ Sous objectif (' + fmt(CFG.objectifTicketMoyen) + ')';
+  }
+
+  // ─ KPI: Food Cost
+  animateValue('kpi-fc', k.foodCost*100, v => v.toFixed(1).replace('.',',')+' %');
+  const fcDelta = qs('#kpi-fc-delta');
+  const fcLine  = qs('#fc-line');
+  if (k.foodCost > CFG.objectifFoodCost) {
+    fcDelta.className = 'card-delta delta-down';
+    fcDelta.textContent = '▼ +' + ((k.foodCost-CFG.objectifFoodCost)*100).toFixed(1) + 'pt vs objectif';
+    fcLine.className = 'accent-line red';
+  } else {
+    fcDelta.className = 'card-delta delta-up';
+    fcDelta.textContent = '▲ Objectif respecté ✓';
+    fcLine.className = 'accent-line green';
+  }
+
+  // ─ KPI: Échéances
+  animateValue('kpi-ech', k.tot30, v => fmtK(v));
+  const echDelta = qs('#kpi-ech-delta');
+  if (k.tot30 > CFG.alerteTresorerie) {
+    echDelta.className = 'card-delta delta-down';
+    echDelta.textContent = '⚠ Dépasse le seuil d\'alerte';
+  } else {
+    echDelta.className = 'card-delta delta-up';
+    echDelta.textContent = '✓ Sous le seuil d\'alerte';
+  }
+
+  // ─ Jauges
+  setTimeout(() => {
+    renderGauge('gauge-fc-path', 'gauge-fc-text', k.foodCost, CFG.objectifFoodCost, k.foodCost > CFG.objectifFoodCost ? '#e74c3c' : '#f0a500');
+    renderGauge('gauge-bev-path', 'gauge-bev-text', k.bevCost, CFG.objectifBevCost, k.bevCost > CFG.objectifBevCost ? '#e74c3c' : '#4ecdc4');
+  }, 300);
+
+  // ─ Sparkline
+  renderSparkline(data.ventes.map(v=>v.caTTC));
+
+  // ─ Bar Chart Achats
+  const maxAchat = Math.max(...k.catBreak.map(c=>c.val), 1);
+  qs('#achats-chart').innerHTML = k.catBreak.map(c => `
+    <div class="bar-row">
+      <div class="bar-row-label">${c.label}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="background:${c.color};width:0%" data-target="${(c.val/maxAchat*100).toFixed(1)}%"></div>
+      </div>
+      <div class="bar-amount">${fmt(c.val)}</div>
+    </div>
+  `).join('');
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach(el => {
+      el.style.width = el.dataset.target;
+    });
+  }, 400);
+
+  // ─ P&L Block
+  const pnlRows = [
+    { label:'CA HT', val:k.caHT, pct:1, color:'var(--accent)', bold:true },
+    { label:'- Mat. premières', val:-k.totalHT, pct:-k.totalCost, color:'var(--red)' },
+    { label:'= Marge brute', val:k.caHT-k.totalHT, pct:1-k.totalCost, color:'var(--accent3)', bold:true },
+    { label:'- Charges fixes', val:-(k.caHT*CFG.tauxChargesFixes), pct:-CFG.tauxChargesFixes, color:'var(--red)' },
+    { label:'- Personnel', val:-(k.caHT*CFG.tauxPersonnel), pct:-CFG.tauxPersonnel, color:'var(--red)' },
+    { label:'≈ Résultat net est.', val:k.caHT*k.margeB, pct:k.margeB, color:k.margeB>0?'var(--green)':'var(--red)', bold:true },
+  ];
+  qs('#pnl-block').innerHTML = pnlRows.map(r => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;color:var(--muted);${r.bold?'font-weight:600;color:var(--text)':''}">${r.label}</span>
+      <div style="text-align:right">
+        <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:${r.color}">${fmt(Math.abs(r.val))}</span>
+        <span style="font-size:10px;color:var(--dim);margin-left:6px">${fmtP(Math.abs(r.pct))}</span>
+      </div>
+    </div>
+  `).join('');
+
+  // ─ Timelines Trésorerie
+  renderTimeline('timeline-30', k.ech30, true);
+  renderTimeline('timeline-60', k.ech60, false);
+
+  // ─ Alertes
+  renderAlertes(k);
+
+  // ─ Tables
+  renderTableFactures(data.achats);
+  renderTableVentes(data.ventes);
+}
+
+// ═══════════════════════════════════════════════════════════
+// GAUGE
+// ═══════════════════════════════════════════════════════════
+function renderGauge(pathId, textId, value, maxRef, color) {
+  const totalLen = 173;
+  const pct = Math.min(value / (maxRef * 1.5), 1); // max visuel = 1.5× objectif
+  const offset = totalLen - (totalLen * pct);
+  const el = qs('#' + pathId);
+  el.style.stroke = color;
+  el.style.strokeDashoffset = offset;
+  qs('#' + textId).textContent = fmtP(value);
+  qs('#' + textId).style.fill = color;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SPARKLINE
+// ═══════════════════════════════════════════════════════════
+function renderSparkline(values) {
+  if (!values.length) return;
+  const W = 300, H = 50, pad = 4;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v,i) => [
+    (i / (values.length-1)) * W,
+    H - pad - ((v-min)/range)*(H-pad*2)
+  ]);
+  const line = pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const area = line + ` L${W},${H} L0,${H} Z`;
+  qs('#spark-line').setAttribute('d', line);
+  qs('#spark-area').setAttribute('d', area);
+  const avg = values.reduce((a,b)=>a+b,0)/values.length;
+  qs('#spark-min').textContent = 'min ' + fmtK(min);
+  qs('#spark-max').textContent = 'max ' + fmtK(max);
+  qs('#spark-avg').textContent = 'moy ' + fmtK(avg);
+}
+
+// ═══════════════════════════════════════════════════════════
+// TIMELINE TRÉSORERIE
+// ═══════════════════════════════════════════════════════════
+function renderTimeline(id, echs, urgent) {
+  const el = qs('#' + id);
+  if (!echs.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--dim);font-size:12px;padding:20px">✅ Aucune échéance</div>`;
+    return;
+  }
+  const color = urgent ? 'var(--red)' : 'var(--orange)';
+  el.innerHTML = echs.map(e => {
+    const jours = diff(new Date().toISOString().slice(0,10), e.echeance);
+    return `
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background:${color}"></div>
+      <div class="timeline-date">${new Date(e.echeance+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>
+      <div>
+        <div class="timeline-name">${e.fournisseur}</div>
+        <div class="timeline-cat">${e.cat} · ${e.mode}</div>
+      </div>
+      <div class="timeline-amount" style="color:${color}">${fmt(e.ttc)}</div>
+      <div class="timeline-days" style="color:${color}">J-${jours}</div>
+    </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ALERTES
+// ═══════════════════════════════════════════════════════════
+function renderAlertes(k) {
+  const alertes = [];
+  if (k.foodCost > CFG.objectifFoodCost) {
+    alertes.push({
+      cls:'alert-danger', icon:'⛔',
+      title: `Food Cost trop élevé : ${fmtP(k.foodCost)} (objectif ${fmtP(CFG.objectifFoodCost)})`,
+      desc: 'Analysez vos achats alimentaires, réduisez les pertes et revoyez vos portions. Chaque point gagné sur le food cost représente un gain direct de marge.'
+    });
+  }
+  if (k.tot30 > CFG.alerteTresorerie) {
+    alertes.push({
+      cls:'alert-warn', icon:'💳',
+      title: `Échéances 30j : ${fmt(k.tot30)} à décaisser`,
+      desc: 'Anticipez vos règlements fournisseurs. Vérifiez votre solde de trésorerie actuel et planifiez les virements prioritaires.'
+    });
+  }
+  if (k.ticketMoy < CFG.objectifTicketMoyen * 0.9) {
+    alertes.push({
+      cls:'alert-warn', icon:'📉',
+      title: `Ticket moyen en baisse : ${fmt(k.ticketMoy)} (objectif ${fmt(CFG.objectifTicketMoyen)})`,
+      desc: 'Formez votre équipe aux suggestions de vente et aux upsells (vins, desserts, cafés). +2€/ticket = +5k€/an sur 100 couverts/j.'
+    });
+  }
+  if (!alertes.length) {
+    alertes.push({
+      cls:'alert-ok', icon:'✅',
+      title:'Tous les indicateurs sont dans les normes',
+      desc:'Excellente gestion ce mois-ci. Continuez à piloter vos coûts et à monitorer vos échéances fournisseurs.'
+    });
+  }
+  qs('#alertes-block').innerHTML = alertes.map((a,i) => `
+    <div class="alert-card ${a.cls}" style="animation-delay:${i*0.1}s">
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-text">
+        <strong>${a.title}</strong>
+        <span>${a.desc}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TABLES
+// ═══════════════════════════════════════════════════════════
+function renderTableFactures(achats) {
+  const pillClass = { 'EN_ATTENTE':'pill-orange', 'PAYE':'pill-green', 'EN_RETARD':'pill-red', 'LITIGE':'pill-red' };
+  const pillLabel = { 'EN_ATTENTE':'En attente', 'PAYE':'Payé', 'EN_RETARD':'En retard', 'LITIGE':'Litige' };
+  const catColor  = { 'ALIMENTAIRE':'#f0a500','BOISSONS':'#4ecdc4','ENTRETIEN':'#8888a0','EMBALLAGE':'#e05c5c','MATERIEL':'#aaaaff' };
+  qs('#table-body').innerHTML = achats.map(f => `
+    <tr>
+      <td style="font-weight:500">${f.fournisseur}</td>
+      <td><span style="font-size:10px;font-weight:600;color:${catColor[f.cat]||'var(--muted)'}">${f.cat}</span></td>
+      <td class="mono">${new Date(f.date+'T12:00:00').toLocaleDateString('fr-FR')}</td>
+      <td class="mono">${new Date(f.echeance+'T12:00:00').toLocaleDateString('fr-FR')}</td>
+      <td class="mono" style="font-weight:600">${fmt(f.ttc)}</td>
+      <td><span class="pill ${pillClass[f.statut]||'pill-blue'}">${pillLabel[f.statut]||f.statut}</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderTableVentes(ventes) {
+  qs('#table-ventes').innerHTML = ventes.map(v => `
+    <tr>
+      <td class="mono">${new Date(v.date+'T12:00:00').toLocaleDateString('fr-FR')}</td>
+      <td><span class="pill pill-blue">${v.service}</span></td>
+      <td class="mono" style="font-weight:600;color:var(--accent)">${fmt(v.caTTC)}</td>
+      <td class="mono">${v.couverts}</td>
+      <td class="mono">${fmt(v.ticket)}</td>
+      <td class="mono">${fmt(v.caBar)}</td>
+      <td class="mono" style="color:${v.annuls>0?'var(--red)':'var(--dim)'}">${v.annuls>0?'-'+fmt(v.annuls):'—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANIMATE VALUE (counter)
+// ═══════════════════════════════════════════════════════════
+function animateValue(id, target, formatter) {
+  const el = qs('#' + id);
+  let start = 0, duration = 1000, startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    const progress = Math.min((ts - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = formatter(start + (target - start) * eased);
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SWITCH PERIOD
+// ═══════════════════════════════════════════════════════════
+function switchPeriod(period, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  // Simulation de données différentes selon la période
+  if (period === 'semaine') {
+    const week = {
+      achats: DATA.mois.achats.slice(0,2),
+      ventes: DATA.mois.ventes.slice(0,2)
+    };
+    DATA._tmp = week;
+    render('_tmp');
+  } else if (period === 'trimestre') {
+    // Multiplier les données pour simuler un trimestre
+    const q = {
+      achats: [...DATA.mois.achats, ...DATA.mois.achats.map(a=>({...a,ht:a.ht*0.95,ttc:a.ttc*0.95}))],
+      ventes: [...DATA.mois.ventes, ...DATA.mois.ventes.map(v=>({...v,caTTC:v.caTTC*1.08,caHT:v.caHT*1.08,couverts:Math.round(v.couverts*1.1)}))]
+    };
+    DATA._tmp = q;
+    render('_tmp');
+  } else {
+    render('mois');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CARD GLOW EFFECT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('mousemove', e => {
+  document.querySelectorAll('.card').forEach(card => {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top)  / rect.height) * 100;
+    card.style.setProperty('--mouse-x', x + '%');
+    card.style.setProperty('--mouse-y', y + '%');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => startAutoRefresh());
+</script>
 </body>
 </html>
+
+// ═══════════════════════════════════════════════════════════
+// CHR 360° - DASHBOARD API LOADER
+// ═══════════════════════════════════════════════════════════
+// À ajouter AVANT la ligne "const DATA = {" dans votre dashboard.html
+
+// CONFIGURATION API
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/VOTRE_DEPLOYMENT_ID/exec';
+
+// DATA (sera chargée depuis l'API)
+let DATA = {
+  mois: { achats: [], ventes: [] },
+  lastUpdate: null
+};
+
+// ═══════════════════════════════════════════════════════════
+// LOAD DATA FROM API
+// ═══════════════════════════════════════════════════════════
+async function loadData() {
+  try {
+    // Récupérer l'ID client depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get('id');
+    
+    if (!clientId) {
+      showError('❌ Token client manquant dans l\'URL');
+      return false;
+    }
+    
+    // Afficher loading
+    showLoading();
+    
+    // Appeler l'API
+    const response = await fetch(`${APPS_SCRIPT_URL}?action=dashboard&id=${clientId}`, {
+      method: 'GET',
+      mode: 'cors'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.mois) {
+      throw new Error('Format de données invalide');
+    }
+    
+    DATA = data;
+    hideLoading();
+    return true;
+    
+  } catch(error) {
+    console.error('Erreur chargement données:', error);
+    showError('❌ Impossible de charger les données. Vérifiez votre lien.');
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOADING & ERROR UI
+// ═══════════════════════════════════════════════════════════
+function showLoading() {
+  const loader = document.createElement('div');
+  loader.id = 'loader';
+  loader.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  `;
+  loader.innerHTML = `
+    <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+    <div style="font-family: var(--font-head); font-size: 24px; margin-bottom: 10px;">CHR 360°</div>
+    <div style="color: var(--muted); font-size: 14px;">Chargement de vos données...</div>
+    <div style="width: 200px; height: 3px; background: var(--border); border-radius: 3px; margin-top: 20px; overflow: hidden;">
+      <div style="width: 40%; height: 100%; background: var(--accent); animation: progress 1.5s infinite;"></div>
+    </div>
+    <style>
+      @keyframes progress {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(400%); }
+      }
+    </style>
+  `;
+  document.body.appendChild(loader);
+}
+
+function hideLoading() {
+  const loader = document.getElementById('loader');
+  if (loader) loader.remove();
+}
+
+function showError(message) {
+  hideLoading();
+  const error = document.createElement('div');
+  error.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 40px;
+    text-align: center;
+  `;
+  error.innerHTML = `
+    <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
+    <div style="font-size: 20px; color: var(--text); margin-bottom: 10px;">${message}</div>
+    <div style="color: var(--muted); font-size: 14px; max-width: 500px;">
+      Si le problème persiste, contactez le support à arnaudguedou@gmail.com
+    </div>
+  `;
+  document.body.appendChild(error);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODIFIER LA FONCTION startAutoRefresh
+// ═══════════════════════════════════════════════════════════
+// REMPLACER la fonction startAutoRefresh existante par celle-ci :
+
+async function startAutoRefresh() {
+  // Charger les données initiales
+  const success = await loadData();
+  if (!success) return;
+  
+  // Render initial
+  render('mois');
+  
+  // Auto-refresh toutes les 5 minutes
+  setInterval(async () => {
+    await loadData();
+    render('mois');
+    console.log('✓ Données actualisées:', new Date().toLocaleTimeString('fr-FR'));
+  }, 5 * 60 * 1000);
+}
