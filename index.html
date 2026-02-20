@@ -1269,18 +1269,14 @@ async function saveSettings(event) {
       taux_personnel: CFG.tauxPersonnel
     };
     
-    // Envoyer au serveur
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'saveConfig',
-        id: CLIENT_TOKEN,
-        config: config
-      })
+    // Envoyer au serveur via GET (contournement CORS)
+    const params = new URLSearchParams({
+      action: 'saveConfig',
+      id: CLIENT_TOKEN,
+      config: JSON.stringify(config)
     });
+    
+    const response = await fetch(`${APPS_SCRIPT_URL}?${params.toString()}`);
     
     if (!response.ok) throw new Error('Erreur sauvegarde');
     
